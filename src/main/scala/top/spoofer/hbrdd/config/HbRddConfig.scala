@@ -18,7 +18,7 @@ object HbRddConfig {
 
     for {
       option <- configs
-      hbOption = HbaseOption(option._1, option._2)
+      hbOption = HbaseOption(option._1, option._2)  //使用新的case class 只是为了表达更加清晰
     } hbConfig.set(hbOption.name, hbOption.value)
 
     this.apply(hbConfig)
