@@ -1,5 +1,7 @@
 package top.spoofer.hbrdd.hbsupport
 
+import java.text.SimpleDateFormat
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat
@@ -11,9 +13,6 @@ import top.spoofer.hbrdd.config.HbRddConfig
 
 
 trait HbRddManager {
-  implicit def arrayStringToArrayBytes(array: Array[String]): Array[Array[Byte]]  = array map { Bytes.toBytes }
-  implicit def stringToBytes(str: String): Array[Byte] = Bytes.toBytes(str)
-
   class HbRddAdmin(connection: Connection) {
     /**
       * 判断一个表和其列簇是否存在
@@ -59,6 +58,13 @@ trait HbRddManager {
       admin.tableExists(table)
     }
 
+    /**
+      * 创建表
+      * @param tableName 表名字
+      * @param families 列簇
+      * @param splitKeys 定义region splits的keys
+      * @return
+      */
     def createTable(tableName: String, families: TraversableOnce[String],
                     splitKeys: TraversableOnce[String]): HbRddAdmin = {
       val table = TableName.valueOf(tableName)
@@ -92,6 +98,102 @@ trait HbRddManager {
 
     def createTable(tableName: String, splitKeys: TraversableOnce[String], families: String*): HbRddAdmin = {
       this.createTable(tableName, families.toSet, splitKeys)
+    }
+
+    /**
+      * 使数据表变为可用
+      * @param tableName 表名字
+      * @return
+      */
+    def enableTable(tableName: String): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+      if (admin.tableExists(table)) admin.enableTable(table)
+      this
+    }
+
+    /**
+      * 禁用一个数据表
+      * @param tableName 数据表的名字
+      * @param requireExists 如果为true, 当表不存在的时候会抛出异常
+      * @return
+      */
+    def disableTable(tableName: String, requireExists: Boolean = false): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+
+      if (requireExists) {
+        require(admin.tableExists(table), s"table $tableName not exists")
+        admin.disableTable(table)
+      } else {
+        if (admin.tableExists(table)) admin.disableTable(table)
+      }
+      this
+    }
+
+    /**
+      * 删除数据表, 在进行删除前需要disabletable, 否则会抛出异常
+      * 这是一个通用的函数， 如果要直接删除表, 使用dropTable
+      * @param tableName 表名字
+      * @return
+      */
+    def deleteTable(tableName: String): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+
+      if (admin.tableExists(table)) admin.deleteTable(table)
+      this
+    }
+
+    /**
+      * 先 disable 表, 再delete table
+      * @param tableName 表名字
+      * @return
+      */
+    def dropTable(tableName: String): HbRddAdmin = {
+      this.disableTable(tableName)
+      this.deleteTable(tableName)
+    }
+
+    /**
+      * 先禁止table再截断
+      * @param tableName 表名字
+      * @param preserveSplits 是否保存分裂
+      * @return
+      */
+    def truncateTable(tableName: String, preserveSplits: Boolean): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+      if (admin.tableExists(table)) {
+        admin.disableTable(table)
+        admin.truncateTable(table, preserveSplits)
+      }
+      this
+    }
+
+    /**
+      * 产生一个table快照
+      * @param tableName 表名字
+      * @param snapshotName 快照名字
+      * @return
+      */
+    def tableSnapshot(tableName: String, snapshotName: String): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val tableDesc = new HTableDescriptor(table)
+      val admin = connection.getAdmin
+      admin.snapshot(snapshotName, tableDesc.getTableName)
+      this
+    }
+
+    /**
+      * 产生一个table快照, 使用默认的快照名字${tableName}_${yyyy-MM-dd-HHmmss}
+      * @param tableName 表名字
+      * @return
+      */
+    def tableSnapshot(tableName: String): HbRddAdmin = {
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd-HHmmss")
+      val suffix = dateFormat.format(System.currentTimeMillis())
+      this.tableSnapshot(tableName, s"${tableName}_$suffix")
     }
 
     def close() = this.connection.close()
