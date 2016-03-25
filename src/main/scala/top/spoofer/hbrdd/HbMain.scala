@@ -2,7 +2,6 @@ package top.spoofer.hbrdd
 
 import org.apache.spark.{SparkContext, SparkConf}
 import top.spoofer.hbrdd.config.HbRddConfig
-import top.spoofer.hbrdd._
 
 object HbMain {
   private val master = "Core1"
@@ -14,15 +13,17 @@ object HbMain {
     implicit val hbConfig = HbRddConfig()
 
     val sparkConf = new SparkConf()
-      .setMaster(s"spark://$master:$port")
+      .setMaster(s"spark://$master:$port").set("executor-memory", "2g")
       .setAppName(appName).setJars(List("/home/lele/coding/hbrdd/out/artifacts/hbrdd_jar/hbrdd.jar"))
+
+//    val sparkConf = new SparkConf().setAppName(appName)
 
     val sc = new SparkContext(sparkConf)
     val ret = sc.textFile(data).map({ line =>
       val Array(k, col1, col2, _) = line split "\t"
-      val content = Map("col1" -> Map(col1 -> "1"))
-      k -> content
-    }).put2Hbase("skdnvc")
+      val content = Map("cf1" -> Map("testqualifier" -> col1))
+      k -> content  //(rowID, Map[family, Map[qualifier, value]])
+    }).put2Hbase("test_hbrdd")
 
 //    println(ret.count())
 

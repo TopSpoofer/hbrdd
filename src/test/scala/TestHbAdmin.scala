@@ -32,28 +32,10 @@ object TestHbAdmin {
   }
 
   def main(args: Array[String]) {
-    val map1 = Map("1" -> "jsbd")
-    val map2 = Map("2" -> "ppp")
-    val map3 =Map("3" -> "ooo")
-    val mapT = Map("f1" -> map1)
-
-    for {
-      (family, content) <- mapT
-      (clu, value) <- content
-    } {
-      println(clu)
-      (family, clu, value)
-    }
-
-    import org.apache.hadoop.hbase.client.Put
-    val put = new Put("sj")
-    println(put.isEmpty)
-    put.addColumn("ee".getBytes(), "hhh".getBytes(), "".getBytes())
-    println(put.isEmpty)
 //    println(hh)
 //    println("===")
 //    this.tableSnapshot()
-//    this.createtable()
+    this.createtable()
 //    this.truncateTable()
 //    this.deleteTable()
   }
