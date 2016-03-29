@@ -33,6 +33,7 @@ val hbaseCommon = "org.apache.hbase" % "hbase-common" % hbaseVersion % "compile"
 val hbaseClient = "org.apache.hbase" % "hbase-client" % hbaseVersion % "compile"
 val hbaseServer = "org.apache.hbase" % "hbase-server" % hbaseVersion % "compile" excludeAll ExclusionRule(organization = "org.mortbay.jetty")
 val hbaseProtocol = "org.apache.hbase" % "hbase-protocol" % hbaseVersion % "compile"
+val hbaseHadoopCompat = "org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"
 val hbaseHadoop2Compat = "org.apache.hbase" % "hbase-hadoop2-compat" % hbaseVersion % "compile"
 
 //val sparkCore = "org.apache.spark" %% "spark-core" % sparkVersion % "compile"
@@ -48,6 +49,7 @@ libraryDependencies ++= Seq(
   hbaseCommon,
   hbaseClient,
   hbaseProtocol,
+  hbaseHadoopCompat,
   hbaseHadoop2Compat,
   hbaseServer,
 //  sparkCore,

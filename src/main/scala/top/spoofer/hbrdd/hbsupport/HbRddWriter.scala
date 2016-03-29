@@ -9,6 +9,7 @@ import top.spoofer.hbrdd._
 import HbRddWritPuter._
 
 trait HbRddWriter {
+  type TsValue[A] = (Long, A) // (ts, A)
   val LATEST_TIMESTAMP = Long.MaxValue
   /**
     * (rowID, Map[family, Map[qualifier, value]])
@@ -19,7 +20,29 @@ trait HbRddWriter {
     */
   implicit def rdd2Hbase[A](rdd: RDD[(String, Map[String, Map[String, A]])])
                            (implicit writer: HbRddFormatsWriter[A]): RDDWriter[A] = {
-    new RDDWriter(rdd, hbRddSetPuter[A], LATEST_TIMESTAMP)
+    new RDDWriter(rdd, hbRddSetPuter[A])
+  }
+
+  /**
+    * (rowID, Map[family, Map[qualifier, (ts, value)]])
+    * @param rdd rdd
+    * @param writer 格式化写入
+    * @tparam A 类型参数
+    * @return
+    */
+  implicit def rdd2HbaseUseTs[A](rdd: RDD[(String, Map[String, Map[String, TsValue[A]]])])
+                           (implicit writer: HbRddFormatsWriter[A]): RDDWriter[TsValue[A]] = {
+    new RDDWriter(rdd, hbRddSetTsPuter[A])
+  }
+
+  implicit def singleFamilyRdd2Hbase[A](rdd: RDD[(String, Map[String, A])])
+                                       (implicit writer: HbRddFormatsWriter[A]): SingleFamilyRDDWriter[A] = {
+    new SingleFamilyRDDWriter(rdd, hbRddSetPuter[A])
+  }
+
+  implicit def singleFamilyRdd2HbaseTs[A](rdd: RDD[(String, Map[String, TsValue[A]])])
+                                         (implicit writer: HbRddFormatsWriter[A]): SingleFamilyRDDWriter[TsValue[A]] = {
+    new SingleFamilyRDDWriter(rdd, hbRddSetTsPuter[A])
   }
 }
 
@@ -27,40 +50,34 @@ trait HbRddWriter {
   * 用来设置put
   */
 private[hbrdd] object HbRddWritPuter {
-  type HbRddPut[A] = (Put, Array[Byte], Array[Byte], A)   //(put, family, qualifier, value)
-  type HbRddPuter[A] = (HbRddPut[A], Long) => Put
+  type HbRddPuter[A] = (Put, Array[Byte], Array[Byte], A) => Put
 
-//  def hbRddSetPuter[A](puter: HbRddPut[A])(implicit writer: HbRddFormatsWriter[A]): Put = {
-//    val put = puter._1
-//    put.addColumn(puter._2, puter._3, writer.formatsWrite(puter._4))
-//  }
+  def hbRddSetPuter[A](puter: Put, family: Array[Byte], qualifier: Array[Byte],
+                       value: A)(implicit writer: HbRddFormatsWriter[A]): Put = {
+    puter.addColumn(family, qualifier, writer.formatsWrite(value))
+  }
 
   //需要设置时间戳时使用
-  def hbRddSetPuter[A](puter: HbRddPut[A], ts: Long)(implicit writer: HbRddFormatsWriter[A]): Put = {
-    val put = puter._1
-    put.addColumn(puter._2, puter._3, ts, writer.formatsWrite(puter._4))
+  def hbRddSetTsPuter[A](puter: Put, family: Array[Byte], qualifier: Array[Byte],
+                       value: TsValue[A])(implicit writer: HbRddFormatsWriter[A]): Put = {
+    puter.addColumn(family, qualifier, value._1, writer.formatsWrite(value._2))
   }
 }
 
 sealed abstract class HbRddWritCommon[A] {
   protected def convert2Writable(rowId: String, datas: Map[String, Map[String, A]],
-                                 puter: HbRddPuter[A], ts: Long): Option[(ImmutableBytesWritable, Put)] = {
+                                 puter: HbRddPuter[A]): Option[(ImmutableBytesWritable, Put)] = {
     val put = new Put(rowId)
 
     for {
       (family, columnContent) <- datas
       (qualifier, value) <- columnContent
     } {
-      val hbRddPut: HbRddPut[A] = (put, family, qualifier, value)
-      puter(hbRddPut, ts)
+      puter(put, family, qualifier, value)
     }
 
     if (put.isEmpty) None else Some(new ImmutableBytesWritable, put)
   }
-
-
-//
-
 }
 
 /**
@@ -70,12 +87,26 @@ sealed abstract class HbRddWritCommon[A] {
   * @tparam A 类型参数
   */
 final class RDDWriter[A](val rdd: RDD[(String, Map[String, Map[String, A]])],
-                         val put: HbRddPuter[A], ts: Long) extends HbRddWritCommon[A] with Serializable {
+                         val put: HbRddPuter[A]) extends HbRddWritCommon[A] with Serializable {
   def put2Hbase(tableName: String)(implicit config: HbRddConfig) = {
     val job = createJob(tableName, config.getHbaseConfig)
-    rdd.flatMap({ case (rowId, datas) => convert2Writable(rowId, datas, put, ts) })
+    rdd.flatMap({ case (rowId, datas) => convert2Writable(rowId, datas, put) })
       .saveAsNewAPIHadoopDataset(job.getConfiguration)
   }
 }
 
-//final class OneFamilyRDDWriter[A](val rdd: RDD[(String, Map[String, A])], val put: )
+/**
+  * 数据表只有一个family
+  * (rowId, Map[qualifier, value]) => (rowID, Map[family, Map[qualifier, value]])
+  * @param rdd rdd
+  * @param put 写入函数
+  * @tparam A 类型参数
+  */
+final class SingleFamilyRDDWriter[A](val rdd: RDD[(String, Map[String, A])],
+                                     val put: HbRddPuter[A]) extends HbRddWritCommon[A] with Serializable {
+  def put2Hbase(tableName: String, family: String)(implicit config: HbRddConfig) = {
+    val job = createJob(tableName, config.getHbaseConfig)
+    rdd.flatMap({ case (rowId, datas) => convert2Writable(rowId, Map(family -> datas), put) })
+      .saveAsNewAPIHadoopDataset(job.getConfiguration)
+  }
+}
