@@ -1,7 +1,9 @@
 package top.spoofer.hbrdd
 
+import org.apache.hadoop.hbase.filter.CompareFilter.CompareOp
 import org.apache.spark.{SparkContext, SparkConf}
 import top.spoofer.hbrdd.config.HbRddConfig
+import top.spoofer.hbrdd._
 
 object HbMain {
   private val master = "Core1"
@@ -80,6 +82,7 @@ object HbMain {
   }
 
   private def testReadHbase() = {
+    import org.apache.hadoop.hbase.filter.{FilterList, SingleColumnValueFilter}
     implicit val hbConfig = HbRddConfig()
     val savePath = "hdfs://Master1:8020/test/spark/hbase/calculation_result"
 
@@ -88,8 +91,14 @@ object HbMain {
       .setAppName(appName).setJars(List("/home/lele/coding/hbrdd/out/artifacts/hbrdd_jar/hbrdd.jar"))
     val sc = new SparkContext(sparkConf)
 
-    val rdd = sc.readHbaseRaw("test_hbrdd")
-//    val arr = rdd.collect()
+    val filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL)
+    val filter1 = new SingleColumnValueFilter("cf1".getBytes, "testqualifier".getBytes, CompareOp.EQUAL, "'S0My9O0dN".getBytes)
+
+    filterList.addFilter(filter1)
+    val qualifiers = Set("testqualifier")
+    val tableStructure = Map[String, Set[String]]("cf1"-> qualifiers)
+    val rdd = sc.readHbaseTs[String]("test_hbrdd", tableStructure, filterList)
+
     println(rdd.count())
     rdd.saveAsTextFile(savePath)
 
@@ -98,16 +107,7 @@ object HbMain {
 
   def main(args: Array[String]) {
     System.setProperty("HADOOP_USER_NAME", "hadoop")
-//    this.testReadHbase()
+    this.testReadHbase()
 //    this.testSingleFamilyRdd2Hbase()
-    val tt = Map[String, Set[String]]()
-    val k = (for {
-      (cf, cols) <- tt
-      col <- cols
-    } yield s"$cf:$col") mkString " "
-
-    println(s"--$k--")
-    if (k == "") println("888")
-
   }
 }
