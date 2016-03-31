@@ -65,13 +65,13 @@ private[hbrdd] object HbRddWritPuter {
 }
 
 sealed abstract class HbRddWritCommon[A] {
-  protected def convert2Writable(rowId: String, datas: Map[String, Map[String, A]],
+  protected def convert2Writable(rowId: String, data: Map[String, Map[String, A]],
                                  puter: HbRddPuter[A]): Option[(ImmutableBytesWritable, Put)] = {
     val put = new Put(rowId)
 
     for {
-      (family, columnContent) <- datas
-      (qualifier, value) <- columnContent
+      (family, columnContents) <- data
+      (qualifier, value) <- columnContents
     } {
       puter(put, family, qualifier, value)
     }
@@ -90,7 +90,7 @@ final class RDDWriter[A](val rdd: RDD[(String, Map[String, Map[String, A]])],
                          val put: HbRddPuter[A]) extends HbRddWritCommon[A] with Serializable {
   def put2Hbase(tableName: String)(implicit config: HbRddConfig) = {
     val job = createJob(tableName, config.getHbaseConfig)
-    rdd.flatMap({ case (rowId, datas) => convert2Writable(rowId, datas, put) })
+    rdd.flatMap({ case (rowId, data) => convert2Writable(rowId, data, put) })
       .saveAsNewAPIHadoopDataset(job.getConfiguration)
   }
 }
@@ -106,7 +106,7 @@ final class SingleFamilyRDDWriter[A](val rdd: RDD[(String, Map[String, A])],
                                      val put: HbRddPuter[A]) extends HbRddWritCommon[A] with Serializable {
   def put2Hbase(tableName: String, family: String)(implicit config: HbRddConfig) = {
     val job = createJob(tableName, config.getHbaseConfig)
-    rdd.flatMap({ case (rowId, datas) => convert2Writable(rowId, Map(family -> datas), put) })
+    rdd.flatMap({ case (rowId, data) => convert2Writable(rowId, Map(family -> data), put) })
       .saveAsNewAPIHadoopDataset(job.getConfiguration)
   }
 }

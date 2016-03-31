@@ -97,7 +97,8 @@ object HbMain {
     filterList.addFilter(filter1)
     val qualifiers = Set("testqualifier")
     val tableStructure = Map[String, Set[String]]("cf1"-> qualifiers)
-    val rdd = sc.readHbaseTs[String]("test_hbrdd", tableStructure, filterList)
+    val families = Set[String]("cf1")
+    val rdd = sc.readHbase[String]("test_hbrdd", families, filterList)
 
     println(rdd.count())
     rdd.saveAsTextFile(savePath)
@@ -105,9 +106,24 @@ object HbMain {
     sc.stop()
   }
 
+  private def testdeleteHbase() = {
+    implicit val hbConfig = HbRddConfig()
+    val savePath = "hdfs://Master1:8020/test/spark/hbase/calculation_result"
+
+    val sparkConf = new SparkConf()
+      .setMaster(s"spark://$master:$port").set("executor-memory", "2g")
+      .setAppName(appName).setJars(List("/home/lele/coding/hbrdd/out/artifacts/hbrdd_jar/hbrdd.jar"))
+    val sc = new SparkContext(sparkConf)
+
+    val ret = sc.parallelize(List("!0?f^O|gsb", "!1f0\\I=@m*"), 3).deleteHbase("test_hbrdd")
+    println(ret.getClass)
+    sc.stop()
+  }
+
   def main(args: Array[String]) {
     System.setProperty("HADOOP_USER_NAME", "hadoop")
-    this.testReadHbase()
+//    this.testReadHbase()
 //    this.testSingleFamilyRdd2Hbase()
+    this.testdeleteHbase()
   }
 }
