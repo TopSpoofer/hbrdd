@@ -8,7 +8,7 @@ object TestHbAdmin {
 
   private def createtable() = {
     val hh = HbRddAdmin.apply()
-    val l = List("ooooo", "iiiii")
+    val l = List("ooooo", "iiiii")  //split keys
     hh.createTable(tableName, l, "cf1", "cf2")
     hh.close()
   }

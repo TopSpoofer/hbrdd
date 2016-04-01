@@ -7,16 +7,41 @@ import top.spoofer.hbrdd.config.HbRddConfig
 import top.spoofer.hbrdd.hbsupport.HbRddDeleterTools._
 import top.spoofer.hbrdd._
 
-
 trait HbRddDeleter {
-  implicit def rowKeyRDDDelete(rdd: RDD[String]): RowKeyRDDDelete = new RowKeyRDDDelete(rdd, deleter)
+  /**
+    * @param rdd (rowId, Map(family, Set(qualifier or (ts, qualifier))))
+    * @return
+    */
+  implicit def rddDelete(rdd: RDD[(String, Map[String, Set[String]])]): RDDDelete[String] = {
+    new RDDDelete(rdd, deleter)
+  }
+
+  implicit def tsRddDelete(rdd: RDD[(String, Map[String, Set[(Long, String)]])]): RDDDelete[(Long, String)] = {
+    new RDDDelete(rdd, deleterTs)
+  }
+
+  implicit def singleFamilyRDDDelete(rdd: RDD[(String, Set[String])]): SingleFamilyRDDDelete[String] = {
+    new SingleFamilyRDDDelete(rdd, deleter)
+  }
+
+  /**
+    * @param rdd rdd(rowId, Set((ts, qualifier)))
+    * @return
+    */
+  implicit def tsSingleFamilyRDDDelete(rdd: RDD[(String, Set[(Long, String)])]): SingleFamilyRDDDelete[(Long, String)] = {
+    new SingleFamilyRDDDelete(rdd, deleterTs)
+  }
+
+  implicit def rowKeyRDDDelete(rdd: RDD[String]): RowKeyRDDDelete = {
+    new RowKeyRDDDelete(rdd, deleter)
+  }
 }
 
 private[hbrdd] object HbRddDeleterTools {
   type DeleteTool[A] = (Delete, Array[Byte], A) => Delete
 
-  def deleter(delete: Delete, family: Array[Byte], qualifier: String) = delete.addColumn(family, qualifier)
-  def deleter(delete: Delete, family: Array[Byte], tsQualifier: (Long, String)) = {
+  def deleter(delete: Delete, family: Array[Byte], qualifier: String) = delete.addColumns(family, qualifier)
+  def deleterTs(delete: Delete, family: Array[Byte], tsQualifier: (Long, String)) = {
     delete.addColumn(family, tsQualifier._2, tsQualifier._1)
   }
 }
@@ -32,11 +57,12 @@ sealed abstract class HbRddDeleteCommon[A] {
   protected def convert2Delete(rowId: String, data: Map[String, Set[A]],
                                deleter: DeleteTool[A]): Option[(ImmutableBytesWritable, Delete)] = {
     val delete = new Delete(rowId)
+
     for {
-      (family, columnContents) <- data
-      content <- columnContents
+      (family, qualifiers) <- data
+      qualifier <- qualifiers
     } {
-      deleter(delete, family, content)
+      deleter(delete, family, qualifier)
     }
 
     if (delete.isEmpty) None else Some(new ImmutableBytesWritable, delete)
@@ -127,7 +153,7 @@ final class RowKeyRDDDelete(val rdd: RDD[String],
     */
   def deleteHbase(table: String, data: Map[String, Set[String]])(implicit config: HbRddConfig) = {
     val job = createJob(table, config.getHbaseConfig)
-    rdd.flatMap({ rowId => this.convert2Delete(table, data, deleter) })
+    rdd.flatMap({ rowId => this.convert2Delete(rowId, data, deleter) })
       .saveAsNewAPIHadoopDataset(job.getConfiguration)
   }
 }
