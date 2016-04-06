@@ -157,12 +157,12 @@ object HbMain {
     sc.stop()
   }
 
-  def main(args: Array[String]) {
-    System.setProperty("HADOOP_USER_NAME", "hadoop")
-//    this.testRdd2Hbase()
-//    this.testReadHbase()
-//    this.testSingleFamilyRdd2Hbase()
-//    this.testdeleteHbase()
-    this.testdeleteHbase1()
-  }
+//  def main(args: Array[String]) {
+//    System.setProperty("HADOOP_USER_NAME", "hadoop")
+////    this.testRdd2Hbase()
+////    this.testReadHbase()
+////    this.testSingleFamilyRdd2Hbase()
+////    this.testdeleteHbase()
+//    this.testdeleteHbase1()
+//  }
 }
