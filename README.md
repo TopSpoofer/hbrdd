@@ -193,6 +193,8 @@ def tableSnapshot(tableName: String): HbRddAdmin = {}
 def close() = {}
 ```
 
+现在还不支持创建表的时候定义表的属性，例如ttl、max version等，日后会添加！
+
 admin的使用请参见: [HbAdmin-examples](https://github.com/TopSpoofer/hbrdd/blob/master/src/test/scala/TestHbAdmin.scala)
 
 
@@ -217,6 +219,8 @@ def readHbase[A](table: String, tableStructure: Map[String, Set[String]], filter
 def readHbase[A](table: String, tableStructure: Map[String, Set[String]], filters: FilterList)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {}
 
 def readHbase[A](table: String, tableStructure: Map[String, Set[String]], scanner: Scan)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {}
+
+
 
 
 /**
@@ -368,6 +372,7 @@ private def testRdd2Hbase() = {
   val sc = new SparkContext(sparkConf)
   val ret = sc.textFile(data).map({ line =>
     val Array(k, col1, col2, _) = line split "\t"
+
     val content = Map("cf1" -> Map("testqualifier" -> col1), "cf2" -> Map("testqualifier2" -> col2))
     k -> content  //(rowID, Map[family, Map[qualifier, value]])
   }).put2Hbase("test_hbrdd")
@@ -375,6 +380,14 @@ private def testRdd2Hbase() = {
   sc.stop()
 }
 ```
+
+需要注意的是，当前版本的hbrdd写入模块，不支持如：
+
+```
+val content = Map("cf1" -> Map("testqualifier" -> col1), "cf2" -> Map("testqualifier2" -> 123))
+k -> content  //(rowID, Map[family, Map[qualifier, value]])
+```
+这样的map类型： Map[String, Map[String, Any]。
 
 其中data文件的格式是有四列，列间使用'\t'进行分隔。
 
