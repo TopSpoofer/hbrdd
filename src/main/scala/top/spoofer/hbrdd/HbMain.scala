@@ -163,6 +163,6 @@ object HbMain {
 ////    this.testReadHbase()
 ////    this.testSingleFamilyRdd2Hbase()
 ////    this.testdeleteHbase()
-//    this.testdeleteHbase1()
+////    this.testdeleteHbase1()
 //  }
 }

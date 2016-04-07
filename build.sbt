@@ -14,14 +14,13 @@ scalacOptions ++= Seq(
 
 org.scalastyle.sbt.ScalastylePlugin.Settings
 
-resolvers ++= Seq(
-  "Cloudera repos" at "https://repository.cloudera.com/artifactory/cloudera-repos",
-  "Cloudera releases" at "https://repository.cloudera.com/artifactory/libs-release"
-)
+//resolvers ++= Seq(
+//  "Cloudera repos" at "https://repository.cloudera.com/artifactory/cloudera-repos",
+//  "Cloudera releases" at "https://repository.cloudera.com/artifactory/libs-release"
+//)
 
-val sparkVersion = "1.5.0"
-val hbaseVersion = "1.0.0-cdh5.5.1"
-val hadoopVersion = "2.6.0-cdh5.5.1"
+val hbaseVersion = "1.1.1"
+val hadoopVersion = "2.6.0"
 val lang3Version = "3.0"
 val jacksonVersion = "3.2.11"
 
@@ -36,9 +35,6 @@ val hbaseProtocol = "org.apache.hbase" % "hbase-protocol" % hbaseVersion % "comp
 val hbaseHadoopCompat = "org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"
 val hbaseHadoop2Compat = "org.apache.hbase" % "hbase-hadoop2-compat" % hbaseVersion % "compile"
 
-//val sparkCore = "org.apache.spark" %% "spark-core" % sparkVersion % "compile"
-//val sparkStreaming = "org.apache.spark" %% "spark-streaming" % sparkVersion % "compile"
-
 val lang3 = "org.apache.commons" % "commons-lang3" % lang3Version
 val jackson = "org.json4s" %% "json4s-jackson" % jacksonVersion % "provided"
 
@@ -52,8 +48,6 @@ libraryDependencies ++= Seq(
   hbaseHadoopCompat,
   hbaseHadoop2Compat,
   hbaseServer,
-//  sparkCore,
-//  sparkStreaming,
   lang3,
   jackson
 )
