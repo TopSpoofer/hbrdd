@@ -59,7 +59,7 @@ trait HbRddManager {
     }
 
     /**
-      * 创建表
+      * 创建设定列簇的表, 如果表存在,不进行任何操作,也不会抛出异常
       * @param tableName 表名字
       * @param families 列簇
       * @param splitKeys 定义region splits的keys
@@ -99,6 +99,59 @@ trait HbRddManager {
     def createTable(tableName: String, splitKeys: TraversableOnce[String], families: String*): HbRddAdmin = {
       this.createTable(tableName, families.toSet, splitKeys)
     }
+
+    /**
+      * 创建设定列簇属性的表, 如果表存在,不进行任何操作,也不会抛出异常
+      * @param tableName 表名字
+      * @param propertieFamilies 配置了属性的family描述符
+      * @param splitKeys 定义region splits的keys
+      * @return
+      */
+    def createTableByProperties(tableName: String, propertieFamilies: TraversableOnce[HbRddFamily],
+                    splitKeys: TraversableOnce[String]): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+
+      if (!admin.tableExists(table) && !admin.isTableAvailable(table)) {
+        val tableDesc = new HTableDescriptor(table)
+
+        propertieFamilies foreach { family =>
+          tableDesc.addFamily(family)
+        }
+
+        if (splitKeys != null || splitKeys.nonEmpty) {
+          admin.createTable(tableDesc, splitKeys map { Bytes.toBytes } toArray)
+        } else admin.createTable(tableDesc)
+      }
+      this
+    }
+
+    def createTableByProperties(tableName:String, family: HbRddFamily, splitKeys: TraversableOnce[String]): HbRddAdmin = {
+      this.createTableByProperties(tableName, Set(family), splitKeys)
+    }
+
+    def createTableByProperties(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {
+      this.createTableByProperties(tableName, families, List.empty)
+    }
+
+    def createTableByProperties(tableName: String, families: HbRddFamily*): HbRddAdmin = {
+      this.createTableByProperties(tableName, families.toSet, List.empty)
+    }
+
+    def createTableByProperties(tableName: String, splitKeys: TraversableOnce[String], families: HbRddFamily*): HbRddAdmin = {
+      this.createTableByProperties(tableName, families.toSet, splitKeys)
+    }
+
+//    def addFamilies(tableName: String, families: TraversableOnce[HbRddFamily]) = {
+//      val table = TableName.valueOf(tableName)
+//      val admin = connection.getAdmin
+//
+//      if (admin.tableExists(table)) {
+//
+//
+//      }
+//    }
+
 
     /**
       * 使数据表变为可用
