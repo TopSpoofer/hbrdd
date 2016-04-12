@@ -12,13 +12,6 @@ scalacOptions ++= Seq(
   "-language:reflectiveCalls"
 )
 
-org.scalastyle.sbt.ScalastylePlugin.Settings
-
-//resolvers ++= Seq(
-//  "Cloudera repos" at "https://repository.cloudera.com/artifactory/cloudera-repos",
-//  "Cloudera releases" at "https://repository.cloudera.com/artifactory/libs-release"
-//)
-
 val hbaseVersion = "1.1.1"
 val hadoopVersion = "2.6.0"
 val lang3Version = "3.0"

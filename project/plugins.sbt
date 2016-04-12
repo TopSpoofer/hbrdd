@@ -1,11 +1,9 @@
 logLevel := Level.Warn
 
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.5.0")
+addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "0.2.2")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-pgp" % "0.8.2")
-
-resolvers += "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/"
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0") // fot sbt-0.13.5 or higher
