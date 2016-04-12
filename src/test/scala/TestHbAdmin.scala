@@ -8,10 +8,10 @@ object TestHbAdmin {
   implicit val hbConfig = HbRddConfig()
 
   private def createtable() = {
-    val hh = HbRddAdmin.apply()
-    val l = List("ooooo", "iiiii")  //split keys
-    hh.createTable(tableName, l, "cf1", "cf2")
-    hh.close()
+    val admin = HbRddAdmin.apply()
+    val splitkeys = List("ooooo", "iiiii")  //split keys
+    admin.createTable(tableName, splitkeys, "cf1", "cf2")
+    admin.close()
   }
 
   private def getPropertiesFamilys = {
@@ -31,38 +31,70 @@ object TestHbAdmin {
   }
 
   private def createtableByProperties() = {
-    val hh = HbRddAdmin.apply()
-    val l = List("ooooo", "iiiii")  //split keys
-    hh.createTableByProperties("testProperties", this.getPropertiesFamilys, l)
-    hh.close()
+    val admin = HbRddAdmin.apply()
+    val splitkeys = List("ooooo", "iiiii")  //split keys
+    admin.createTableByProperties("testProperties", this.getPropertiesFamilys, splitkeys)
+    admin.close()
   }
 
   private def deleteTable() = {
-    val hh = HbRddAdmin.apply()
-    hh.dropTable(tableName)
-    hh.close()
+    val admin = HbRddAdmin.apply()
+    admin.dropTable(tableName)
+    admin.close()
   }
 
   private def truncateTable() = {
-    val hh = HbRddAdmin.apply()
-    hh.truncateTable(tableName, preserveSplits = true)
-    hh.close()
+    val admin = HbRddAdmin.apply()
+    admin.truncateTable(tableName, preserveSplits = true)
+    admin.close()
   }
 
   private def tableSnapshot() = {
-    val hh = HbRddAdmin.apply()
-    hh.tableSnapshot(tableName)
-    hh.close()
+    val admin = HbRddAdmin.apply()
+    admin.tableSnapshot(tableName)
+    admin.close()
+  }
+
+  private def testAddFamilies() = {
+    val map2 = Map("maxversions" -> "1000", "minversions" -> "2", "ttl" -> "9999", "blocksize" -> "222",
+      "inmem" -> "true", "bloomfilter" -> "rowcol", "scope" -> "1", "keepdeletecells" -> "false", "blockcache" -> "false")
+
+    val fp2 = FamilyPropertiesStringSetter(map2)
+    val cf2 = HbRddFamily("addcf", fp2)
+
+    val admin = HbRddAdmin.apply()
+    admin.addFamilies("testProperties", cf2)
+    admin.close()
+  }
+
+  private def testUpdateFamilies() = {
+    val map2 = Map("maxversions" -> "10001", "minversions" -> "3", "ttl" -> "9990", "blocksize" -> "2212",
+      "inmem" -> "false", "bloomfilter" -> "row", "scope" -> "0", "keepdeletecells" -> "true", "blockcache" -> "true")
+
+    val fp2 = FamilyPropertiesStringSetter(map2)
+    val cf2 = HbRddFamily("addcf", fp2)
+
+    val admin = HbRddAdmin.apply()
+    admin.updateFamilies("testProperties", cf2)
+    admin.close()
+  }
+
+  private def testDeleteFamilies() = {
+    val admin = HbRddAdmin.apply()
+    admin.deleteFamiliesByName("testProperties", "addcf")
+    admin.close()
   }
 
   def main(args: Array[String]) {
-//    println(hh)
-//    println("===")
+    println("===")
 //    this.tableSnapshot()
 //    this.createtable()
 //    this.truncateTable()
 //    this.deleteTable()
 
-    this.createtableByProperties()
+//    this.createtableByProperties()
+//    this.testAddFamilies()
+//    this.testUpdateFamilies()
+//    this.testDeleteFamilies()
   }
 }

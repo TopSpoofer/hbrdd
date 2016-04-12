@@ -142,16 +142,122 @@ trait HbRddManager {
       this.createTableByProperties(tableName, families.toSet, splitKeys)
     }
 
-//    def addFamilies(tableName: String, families: TraversableOnce[HbRddFamily]) = {
-//      val table = TableName.valueOf(tableName)
-//      val admin = connection.getAdmin
-//
-//      if (admin.tableExists(table)) {
-//
-//
-//      }
-//    }
+    /**
+      * 在数据表中加入新的family, 这里不再像cretae table那样提供string的接口
+      * 如果不能成功执行,将抛出异常
+      * @param tableName 表名字
+      * @param families 要加入的列
+      * @return
+      */
+    def addFamilies(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
 
+      if (admin.tableExists(table)) {
+        try {
+          admin.disableTable(table)
+          val tableDescriptor = admin.getTableDescriptor(table)
+          families foreach { cf =>
+            if (!tableDescriptor.hasFamily(cf.name.getBytes)) tableDescriptor.addFamily(cf)
+          }
+          admin.modifyTable(table, tableDescriptor)
+        } catch {
+          case ex: Exception => throw ex
+        } finally {
+          //不管怎么样都enable table
+          admin.enableTable(table)
+        }
+      }
+      this
+    }
+
+    def addFamily(tableName: String, family: HbRddFamily): HbRddAdmin = {
+      this.addFamilies(tableName, Set(family))
+    }
+
+    def addFamilies(tableName: String, families: HbRddFamily*): HbRddAdmin = {
+      this.addFamilies(tableName, families.toSet)
+    }
+
+    /**
+      * 在表中删除列簇, 如果不成功会抛出异常
+      * @param tableName 表名字
+      * @param families 要删除的列簇
+      * @return
+      */
+    def deleteFamilies(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+
+      if (admin.tableExists(table)) {
+        try {
+          admin.disableTable(table)
+          val tableDescriptor = admin.getTableDescriptor(table)
+          families foreach { cf =>
+            if (tableDescriptor.hasFamily(cf.name.getBytes)) tableDescriptor.removeFamily(cf.name.getBytes)
+          }
+          admin.modifyTable(table, tableDescriptor)
+        } catch {
+          case ex: Exception => throw ex
+        } finally {
+          admin.enableTable(table)
+        }
+      }
+      this
+    }
+
+    def deleteFamily(tableName: String, family: HbRddFamily): HbRddAdmin = {
+      this.deleteFamilies(tableName, Set(family))
+    }
+
+    def deleteFamilies(tableName: String, families: HbRddFamily*): HbRddAdmin = {
+      this.deleteFamilies(tableName, families.toSet)
+    }
+
+    def deleteFamilyByName(tableName: String, family: String): HbRddAdmin = {
+      this.deleteFamilies(tableName, Set(HbRddFamily(family)))
+    }
+
+    def deleteFamiliesByName(tableName: String, families: String*): HbRddAdmin = {
+      val cfsStr = families.toSet
+      val cfs = cfsStr.map(cf => HbRddFamily(cf))
+      this.deleteFamilies(tableName, cfs.toSet)
+    }
+
+    /**
+      * 更新hbase数据表的属性, 如果不成功，抛出异常
+      * 如果表中不包含指定的列簇,不会创建列簇也不会抛出异常,只是简单地不对其进行操作
+      * @param tableName 表名字
+      * @param families 列簇
+      * @return
+      */
+    def updateFamilies(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {
+      val table = TableName.valueOf(tableName)
+      val admin = connection.getAdmin
+      if (admin.tableExists(table)) {
+        try {
+          admin.disableTable(table)
+          val tableDescriptor = admin.getTableDescriptor(table)
+          families foreach { cf =>
+            if (tableDescriptor.hasFamily(cf.name.getBytes)) tableDescriptor.modifyFamily(cf)
+          }
+          admin.modifyTable(table, tableDescriptor)
+        } catch {
+          case ex: Exception => throw ex
+        } finally {
+          admin.enableTable(table)
+        }
+      }
+      this
+    }
+
+    def updateFamily(tableName: String, family: HbRddFamily): HbRddAdmin = {
+      this.updateFamilies(tableName, Set(family))
+    }
+
+    def updateFamilies(tableName: String, families: HbRddFamily*): HbRddAdmin = {
+      this.updateFamilies(tableName, families.toSet)
+    }
 
     /**
       * 使数据表变为可用

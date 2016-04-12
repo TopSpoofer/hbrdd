@@ -10,6 +10,7 @@ object TestHbRddFamily {
     println(hh.inmem)
 
     val tt = HbRddFamily("ffff", hh)
+    val kk = HbRddFamily("llll")
     println(tt.getMaxVersions)
   }
 }

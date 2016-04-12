@@ -82,10 +82,10 @@ final class FamilyPropertiesStringSetter() extends FamilyProperties {
       case "minversions" => this._minversions = attrValue.toInt
       case "ttl" => this._ttl = attrValue.toInt
       case "blocksize" => this._blocksize = attrValue.toInt
-      case "inmem" => this._inmem = attrValue   //*************
+      case "inmem" => this._inmem = attrValue
       case "bloomfilter" => this._bloomfilter = attrValue
       case "scope" => this._scope = attrValue.toInt
-      case "keepdeletecells" => this._kdc = attrValue //***************
+      case "keepdeletecells" => this._kdc = attrValue
       case "blockcache" => this._blockcache = attrValue //**********
       case _ =>
     }
@@ -106,7 +106,7 @@ final class FamilyPropertiesStringSetter() extends FamilyProperties {
     hbRddFamily.setBloomFilterType(this.bloomfilter)
     hbRddFamily.setScope(this.scope)
     hbRddFamily.setKeepDeletedCells(this.keepdeletecells)
-    hbRddFamily.setBlockCacheEnabled(false)
+    hbRddFamily.setBlockCacheEnabled(this.blockcache)
   }
 }
 

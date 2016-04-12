@@ -134,12 +134,65 @@ def createTable(tableName: String, families: TraversableOnce[String]): HbRddAdmi
 def createTable(tableName: String, families: String*): HbRddAdmin = {}
 def createTable(tableName: String, splitKeys: TraversableOnce[String], families: String*): HbRddAdmin = {}
 
+
+/**
+  * 创建设定列簇属性的表, 如果表存在,不进行任何操作,也不会抛出异常
+  * @param tableName 表名字
+  * @param propertieFamilies 配置了属性的family描述符
+  * @param splitKeys 定义region splits的keys
+  * @return
+  */
+def createTableByProperties(tableName: String, propertieFamilies: TraversableOnce[HbRddFamily], splitKeys: TraversableOnce[String]): HbRddAdmin = {}
+def createTableByProperties(tableName:String, family: HbRddFamily, splitKeys: TraversableOnce[String]): HbRddAdmin = {}
+def createTableByProperties(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {}
+def createTableByProperties(tableName: String, families: HbRddFamily*): HbRddAdmin = {}
+def createTableByProperties(tableName: String, splitKeys: TraversableOnce[String], families: HbRddFamily*): HbRddAdmin = {}
+
+
+/**
+  * 在数据表中加入新的family, 这里不再像cretae table那样提供string的接口
+  * 如果不能成功执行,将抛出异常
+  * @param tableName 表名字
+  * @param families 要加入的列
+  * @return
+  */
+def addFamilies(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {}
+def addFamily(tableName: String, family: HbRddFamily): HbRddAdmin = {}
+def addFamilies(tableName: String, families: HbRddFamily*): HbRddAdmin = {}
+
+
+/**
+  * 在表中删除列簇, 如果不成功会抛出异常
+  * @param tableName 表名字
+  * @param families 要删除的列簇
+  * @return
+  */
+def deleteFamilies(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {}
+def deleteFamily(tableName: String, family: HbRddFamily): HbRddAdmin = {}
+def deleteFamilies(tableName: String, families: HbRddFamily*): HbRddAdmin = {}
+def deleteFamilyByName(tableName: String, family: String): HbRddAdmin = {}
+def deleteFamiliesByName(tableName: String, families: String*): HbRddAdmin = {}
+
+
+/**
+  * 更新hbase数据表的属性, 如果不成功，抛出异常
+  * 如果表中不包含指定的列簇,不会创建列簇也不会抛出异常,只是简单地不对其进行操作
+  * @param tableName 表名字
+  * @param families 列簇
+  * @return
+  */
+def updateFamilies(tableName: String, families: TraversableOnce[HbRddFamily]): HbRddAdmin = {}
+def updateFamily(tableName: String, family: HbRddFamily): HbRddAdmin = {}
+def updateFamilies(tableName: String, families: HbRddFamily*): HbRddAdmin = {}
+
+
 /**
   * 使数据表变为可用
   * @param tableName 表名字
   * @return
   */
 def enableTable(tableName: String): HbRddAdmin = {}
+
 
 /**
   * 禁用一个数据表
@@ -149,6 +202,7 @@ def enableTable(tableName: String): HbRddAdmin = {}
   */
 def disableTable(tableName: String, requireExists: Boolean = false): HbRddAdmin = {}
 
+
 /**
   * 删除数据表, 在进行删除前需要disabletable, 否则会抛出异常
   * 这是一个通用的函数， 如果要直接删除表, 使用dropTable
@@ -157,12 +211,14 @@ def disableTable(tableName: String, requireExists: Boolean = false): HbRddAdmin 
   */
 def deleteTable(tableName: String): HbRddAdmin = {}
 
+
 /**
   * 先 disable 表, 再delete table
   * @param tableName 表名字
   * @return
   */
 def dropTable(tableName: String): HbRddAdmin = {}
+
 
 /**
   * 先禁止table再截断
@@ -172,6 +228,7 @@ def dropTable(tableName: String): HbRddAdmin = {}
   */
 def truncateTable(tableName: String, preserveSplits: Boolean): HbRddAdmin = {}
 
+
 /**
   * 产生一个table快照
   * @param tableName 表名字
@@ -180,6 +237,7 @@ def truncateTable(tableName: String, preserveSplits: Boolean): HbRddAdmin = {}
   */
 def tableSnapshot(tableName: String, snapshotName: String): HbRddAdmin = {}
 
+
 /**
   * 产生一个table快照, 使用默认的快照名字${tableName}_${yyyy-MM-dd-HHmmss}
   * @param tableName 表名字
@@ -187,13 +245,12 @@ def tableSnapshot(tableName: String, snapshotName: String): HbRddAdmin = {}
   */
 def tableSnapshot(tableName: String): HbRddAdmin = {}
 
+
 /**
   * 关闭admin的连接，使用完admin后必须关闭连接！
   */
 def close() = {}
 ```
-
-现在还不支持创建表的时候定义表的属性，例如ttl、max version等，日后会添加！
 
 admin的使用请参见: [HbAdmin-examples](https://github.com/TopSpoofer/hbrdd/blob/master/src/test/scala/TestHbAdmin.scala)
 
