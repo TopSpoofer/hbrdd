@@ -37,8 +37,8 @@ trait HbRddReaders {
   }
 
   /**
-    * 在Bytes.toString(readData)后, 如果字符串的格式不是json, 会出问题！
-    */
+   * 在Bytes.toString(readData)后, 如果字符串的格式不是json, 会出问题！
+   */
   implicit val hbJsonReader = new HbRddFormatsReader[JValue] {
     import org.json4s.jackson.JsonMethods._
     def formatsRead(readData: Array[Byte]): JValue = parse(Bytes.toString(readData))

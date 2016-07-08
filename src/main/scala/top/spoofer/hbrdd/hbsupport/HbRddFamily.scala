@@ -1,8 +1,7 @@
 package top.spoofer.hbrdd.hbsupport
 
-import org.apache.hadoop.hbase.{KeepDeletedCells, HColumnDescriptor}
+import org.apache.hadoop.hbase.{ KeepDeletedCells, HColumnDescriptor }
 import org.apache.hadoop.hbase.regionserver.BloomType
-
 
 sealed trait FamilyProperties {
   protected var _maxversions: Int = 1
@@ -37,10 +36,10 @@ final class FamilyPropertiesStringSetter() extends FamilyProperties {
   }
 
   /**
-    * 如果attr的值不是true或者false的话，默认返回false
-    * @param attr 需要转换的属性
-    * @return
-    */
+   * 如果attr的值不是true或者false的话，默认返回false
+   * @param attr 需要转换的属性
+   * @return
+   */
   implicit private def stringToBoolean(attr: String): Boolean = {
     attr match {
       case "true" => true
@@ -50,10 +49,10 @@ final class FamilyPropertiesStringSetter() extends FamilyProperties {
   }
 
   /**
-    * 如果filterStr不是row或者rowcol的话,默认为NONE
-    * @param filterStr 过滤器名称
-    * @return
-    */
+   * 如果filterStr不是row或者rowcol的话,默认为NONE
+   * @param filterStr 过滤器名称
+   * @return
+   */
   implicit private def stringToBloomFilter(filterStr: String): BloomType = {
     filterStr match {
       case "row" => BloomType.ROW
@@ -63,10 +62,10 @@ final class FamilyPropertiesStringSetter() extends FamilyProperties {
   }
 
   /**
-    * 如果value不是true、false、ttl的话,默认为false
-    * @param kdcStr KeepDeletedCells
-    * @return
-    */
+   * 如果value不是true、false、ttl的话,默认为false
+   * @param kdcStr KeepDeletedCells
+   * @return
+   */
   implicit private def stringToKeepDeletedCells(kdcStr: String): KeepDeletedCells = {
     kdcStr match {
       case "true" => KeepDeletedCells.TRUE
@@ -109,7 +108,6 @@ final class FamilyPropertiesStringSetter() extends FamilyProperties {
     hbRddFamily.setBlockCacheEnabled(this.blockcache)
   }
 }
-
 
 final class FamilyPropertiesSetter() extends FamilyProperties {
   def this(properties: Map[String, Any]) = {
@@ -170,7 +168,6 @@ object FamilyPropertiesSetter {
     new FamilyPropertiesSetter(properties)
   }
 }
-
 
 class HbRddFamily(family: String) extends HColumnDescriptor(family) {
   def this(family: String, familyProperties: FamilyProperties) = {

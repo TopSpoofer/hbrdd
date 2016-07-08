@@ -23,11 +23,11 @@
 <configuration>
 	<property>
 		<name>hbase.rootdir</name>
-		<value>/home/hbase</value>
+		<value>/hbase</value>
 	</property>
 	<property>
 		<name>hbase.zookeeper.quorum</name>
-    <value>Core1,Core2,Core3</value>
+    <value>localhost:2181,localhost:2182,localhost:2183</value>
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>

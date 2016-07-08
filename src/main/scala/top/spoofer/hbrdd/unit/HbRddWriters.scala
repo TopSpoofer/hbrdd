@@ -21,7 +21,7 @@ trait HbRddWriters {
   }
 
   implicit val hbFloatWriter = new HbRddFormatsWriter[Float] {
-    def formatsWrite(writeData: Float): Array[Byte] =  Bytes.toBytes(writeData)
+    def formatsWrite(writeData: Float): Array[Byte] = Bytes.toBytes(writeData)
   }
 
   implicit val hbDoubleWrite = new HbRddFormatsWriter[Double] {
