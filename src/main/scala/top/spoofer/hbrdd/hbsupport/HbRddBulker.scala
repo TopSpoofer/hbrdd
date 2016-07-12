@@ -30,18 +30,22 @@ trait HbRddBulker {
   implicit lazy val cellkeyCmp = new CellKeyCMP
   implicit lazy val cellKeyCmpTs = new CellKeyCMP4Ts
 
-  implicit def toSimpleHFileRDD[A: ClassTag](rdd: RDD[(String, Map[String, A])])(implicit writer: HbRddFormatsWriter[A]): SimpleHFileRdd[CellKey, A, A] =
+  implicit def toSimpleHFileRDD[A: ClassTag](rdd: RDD[(String, Map[String, A])])(implicit writer: HbRddFormatsWriter[A]): SimpleHFileRdd[CellKey, A, A] = {
     new SimpleHFileRdd[CellKey, A, A](rdd, getCellKey[A], familyWarpper[A])
+  }
 
-  implicit def toSimpleHFileRDDTs[A: ClassTag](rdd: RDD[(String, Map[String, (Long, A)])])(implicit writer: HbRddFormatsWriter[A]): SimpleHFileRdd[CellKeyTs, (Long, A), A] =
+  implicit def toSimpleHFileRDDTs[A: ClassTag](rdd: RDD[(String, Map[String, (Long, A)])])(implicit writer: HbRddFormatsWriter[A]): SimpleHFileRdd[CellKeyTs, (Long, A), A] = {
     new SimpleHFileRdd[CellKeyTs, (Long, A), A](rdd, getCellKey[A], familyWarpper4Ts[A])
+  }
 
 
-  implicit def toHFileRDD[A: ClassTag](rdd: RDD[(String, Map[String, Map[String, A]])])(implicit writer: HbRddFormatsWriter[A]): HFileRdd[CellKey, A, A] =
+  implicit def toHFileRDD[A: ClassTag](rdd: RDD[(String, Map[String, Map[String, A]])])(implicit writer: HbRddFormatsWriter[A]): HFileRdd[CellKey, A, A] = {
     new HFileRdd[CellKey, A, A](rdd, getCellKey[A], familyWarpper[A])
+  }
 
-  implicit def toHFileRDDTs[A: ClassTag](rdd: RDD[(String, Map[String, Map[String, (Long, A)]])])(implicit writer: HbRddFormatsWriter[A]): HFileRdd[CellKeyTs, (Long, A), A] =
+  implicit def toHFileRDDTs[A: ClassTag](rdd: RDD[(String, Map[String, Map[String, (Long, A)]])])(implicit writer: HbRddFormatsWriter[A]): HFileRdd[CellKeyTs, (Long, A), A] = {
     new HFileRdd[CellKeyTs, (Long, A), A](rdd, getCellKey[A], familyWarpper4Ts[A])
+  }
 }
 
 private[hbrdd] object HFileHelper {
@@ -186,6 +190,12 @@ sealed abstract class HFileCommon extends Serializable {
   }
 }
 
+/**
+  * 单family的情况
+  * @param rdds (String, Map[String, A]) => (rowID, Map[qualifier, value])
+  * @param cko CellKeyObtain
+  * @param familyWrapper KeyValueWrapper4Family
+  */
 final class SimpleHFileRdd[C: ClassTag, A: ClassTag, V: ClassTag](rdds: RDD[(String, Map[String, A])], cko: CellKeyObtain[C, A, V],
                                                                   familyWrapper: KeyValueWrapper4Family[C, V]) extends HFileCommon {
   def saveToHbaseByBulk(table: String, family: String, numHFilesPerRegionPerFamily: Int = 1)(implicit config: HbRddConfig, cmp: Ordering[C]): Unit = {
@@ -207,7 +217,12 @@ final class SimpleHFileRdd[C: ClassTag, A: ClassTag, V: ClassTag](rdds: RDD[(Str
   }
 }
 
-
+/**
+  * 多family的情况
+  * @param mapRdds  (String, Map(String, Map(String, A))) => (rowID, Map(familyKey, Map(qualifier, Value)))
+  * @param cko CellKeyObtain
+  * @param familyWrapper KeyValueWrapper4Family
+  */
 final class HFileRdd[C: ClassTag, A: ClassTag, V: ClassTag](mapRdds: RDD[(String, Map[String, Map[String, A]])],
                                                             cko: CellKeyObtain[C, A, V], familyWrapper: KeyValueWrapper4Family[C, V]) extends HFileCommon {
   def saveToHbaseByBulk(table: String, numHFilesPerRegionPerFamily: Int = 1)(implicit config: HbRddConfig, cmp: Ordering[C]): Unit = {

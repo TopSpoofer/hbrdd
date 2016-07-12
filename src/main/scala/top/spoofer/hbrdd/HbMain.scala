@@ -3,7 +3,6 @@ package top.spoofer.hbrdd
 import org.apache.hadoop.hbase.filter.CompareFilter.CompareOp
 import org.apache.spark.{ SparkContext, SparkConf }
 import top.spoofer.hbrdd.config.HbRddConfig
-import top.spoofer.hbrdd._
 
 object HbMain {
   private val master = "localhost"
@@ -155,12 +154,84 @@ object HbMain {
     sc.stop()
   }
 
-    def main(args: Array[String]) {
-      System.setProperty("HADOOP_USER_NAME", "spoofer")
-      this.testRdd2Hbase()
-  //    this.testReadHbase()
-  //    this.testSingleFamilyRdd2Hbase()
-  //    this.testdeleteHbase()
-  //    this.testdeleteHbase1()
-    }
+  private def testSimpleHbaseBluk(): Unit = {
+    implicit val hbConfig = HbRddConfig()
+
+    val sparkConf = new SparkConf().setMaster("local[2]").setAppName(appName)
+
+    //    val sparkConf = new SparkConf().setAppName(appName)
+
+    val sc = new SparkContext(sparkConf)
+    val ret = sc.textFile(data).map({ line =>
+      val Array(k, col1, col2, _) = line split "\t"
+      val content = Map("testqualifier" -> col1)
+      k -> content //(rowID, Map[qualifier, value])
+    }).saveToHbaseByBulk("test_hbrdd", "cf1")
+
+    sc.stop()
+  }
+
+  private def testSimpleHbaseBlukTs() = {
+    implicit val hbConfig = HbRddConfig()
+
+    val sparkConf = new SparkConf().setMaster("local[2]").setAppName(appName)
+
+    //    val sparkConf = new SparkConf().setAppName(appName)
+
+    val sc = new SparkContext(sparkConf)
+    val ret = sc.textFile(data).map({ line =>
+      val Array(k, col1, col2, _) = line split "\t"
+      val content = Map("testqualifier" -> (System.currentTimeMillis(), col1))
+      k -> content //(rowID, Map[qualifier, value])
+    }).saveToHbaseByBulk("test_hbrdd", "cf1")
+
+    sc.stop()
+  }
+
+  private def testHbaseBluk() = {
+    implicit val hbConfig = HbRddConfig()
+
+    val sparkConf = new SparkConf().setMaster("local[2]").setAppName(appName)
+
+    //    val sparkConf = new SparkConf().setAppName(appName)
+
+    val sc = new SparkContext(sparkConf)
+    val ret = sc.textFile(data).map({ line =>
+      val Array(k, col1, col2, _) = line split "\t"
+      val content = Map("cf1" -> Map("testqualifier" -> col1))
+      k -> content //(rowID, Map[qualifier, value])
+    }).saveToHbaseByBulk("test_hbrdd")
+
+    sc.stop()
+  }
+
+  private def testHbaseBlukTs() = {
+    implicit val hbConfig = HbRddConfig()
+
+    val sparkConf = new SparkConf().setMaster("local[2]").setAppName(appName)
+
+    //    val sparkConf = new SparkConf().setAppName(appName)
+
+    val sc = new SparkContext(sparkConf)
+    val ret = sc.textFile(data).map({ line =>
+      val Array(k, col1, col2, _) = line split "\t"
+      val content = Map("cf1" -> Map("testqualifier" -> (System.currentTimeMillis(), col1)))
+      k -> content //(rowID, Map[qualifier, value])
+    }).saveToHbaseByBulk("test_hbrdd")
+
+    sc.stop()
+  }
+
+  def main(args: Array[String]) {
+    System.setProperty("HADOOP_USER_NAME", "spoofer")
+//    this.testHbaseBlukTs()
+//    this.testHbaseBluk()
+//    this.testRdd2Hbase()
+//    this.testSimpleHbaseBluk()
+//    this.testSimpleHbaseBlukTs()
+//    this.testReadHbase()
+//    this.testSingleFamilyRdd2Hbase()
+//    this.testdeleteHbase()
+//    this.testdeleteHbase1()
+  }
 }
