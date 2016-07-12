@@ -22,7 +22,7 @@ $ sbt
 $ 将打包好的jar放到你的项目的根目录的lib目录下。然后导入hbrdd的jar。
 ```
 
-除了需要编译，导入jar，你还需要在你的项目的bulid.sbt下加入hbrdd的依赖包。hbrdd的依赖包如下：
+除了需要编译，导入jar，你还需要在你的项目的bulid.sbt下加入hbrdd的依赖包。hbrdd的依赖包如下（如果运行时缺失某些类， 请参见build.sbt, 进行全量导入！）：
 
 ```
 val hbaseVersion = "1.1.1"
@@ -504,3 +504,52 @@ private def testdeleteHbase() = {
 这个删除操作会删除所有的版本， 如果想只删除最新的版本， 需要使用带有ts的值类型的删除api，且把ts设置为Long.MaxValue。
 
 详细的使用例子请参见： [delete-examples](https://github.com/TopSpoofer/hbrdd/blob/master/src/main/scala/top/spoofer/hbrdd/HbMain.scala)
+
+
+#### 批量导入
+
+
+hbrdd 支持批量导入（bluk），只提供了简单的api，虽然简单但功能强大！
+
+
+```
+/**
+  * 单family的情况
+  * @param rdds (String, Map[String, A]) => (rowID, Map[qualifier, value])
+  * @param cko CellKeyObtain
+  * @param familyWrapper KeyValueWrapper4Family
+  */
+def saveToHbaseByBulk(table: String, numHFilesPerRegionPerFamily: Int = 1)(implicit config: HbRddConfig, cmp: Ordering[C]): Unit = {}
+
+/**
+  * 多family的情况
+  * @param mapRdds  (String, Map(String, Map(String, A))) => (rowID, Map(familyKey, Map(qualifier, Value)))
+  * @param cko CellKeyObtain
+  * @param familyWrapper KeyValueWrapper4Family
+  */
+def saveToHbaseByBulk(table: String, numHFilesPerRegionPerFamily: Int = 1)(implicit config: HbRddConfig, cmp: Ordering[C]): Unit = {}
+```
+
+使用案例如下：
+
+```
+private def testSimpleHbaseBluk(): Unit = {
+  implicit val hbConfig = HbRddConfig()
+
+  val sparkConf = new SparkConf().setMaster("local[2]").setAppName(appName)
+
+  //    val sparkConf = new SparkConf().setAppName(appName)
+
+  val sc = new SparkContext(sparkConf)
+  val ret = sc.textFile(data).map({ line =>
+    val Array(k, col1, col2, _) = line split "\t"
+    val content = Map("testqualifier" -> col1)
+    k -> content //(rowID, Map[qualifier, value])
+  }).saveToHbaseByBulk("test_hbrdd", "cf1")
+
+  sc.stop()
+}
+
+```
+
+详细例子参见：  [hbase-bluk](https://github.com/TopSpoofer/hbrdd/blob/master/src/main/scala/top/spoofer/hbrdd/HbMain.scala)
