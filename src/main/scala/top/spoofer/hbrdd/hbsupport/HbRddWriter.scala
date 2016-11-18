@@ -83,7 +83,7 @@ sealed abstract class HbRddWritCommon[A] {
  * @tparam A 类型参数
  */
 final class RDDWriter[A](
-  val rdd: RDD[(String, Map[String, Map[String, A]])],
+    val rdd: RDD[(String, Map[String, Map[String, A]])],
     val put: HbRddPuter[A]
 ) extends HbRddWritCommon[A] with Serializable {
   def put2Hbase(tableName: String)(implicit config: HbRddConfig) = {
@@ -101,7 +101,7 @@ final class RDDWriter[A](
  * @tparam A 类型参数
  */
 final class SingleFamilyRDDWriter[A](
-  val rdd: RDD[(String, Map[String, A])],
+    val rdd: RDD[(String, Map[String, A])],
     val put: HbRddPuter[A]
 ) extends HbRddWritCommon[A] with Serializable {
   def put2Hbase(tableName: String, family: String)(implicit config: HbRddConfig) = {

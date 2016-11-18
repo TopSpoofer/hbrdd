@@ -1,7 +1,7 @@
 package top.spoofer
 
 import top.spoofer.hbrdd.hbsupport._
-import top.spoofer.hbrdd.unit.{HbRddReaders, HbRddWriters, basalImpl}
+import top.spoofer.hbrdd.unit.{ HbRddReaders, HbRddWriters, basalImpl }
 
 package object hbrdd extends HbRddWriter
   with HbRddWriters

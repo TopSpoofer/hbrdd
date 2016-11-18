@@ -126,23 +126,19 @@ final class HbaseSparkContext(@transient sc: SparkContext) extends Serializable 
    * @tparam A 类型参数
    * @return
    */
-  def readHbase[A](table: String, tableStructure: Map[String, Set[String]])
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Map[String, Set[String]])(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbase(table, tableStructure, new Scan())
   }
 
-  def readHbase[A](table: String, tableStructure: Map[String, Set[String]], filter: Filter)
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Map[String, Set[String]], filter: Filter)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbase(table, tableStructure, this.createScanner(filter))
   }
 
-  def readHbase[A](table: String, tableStructure: Map[String, Set[String]], filters: FilterList)
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Map[String, Set[String]], filters: FilterList)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbase(table, tableStructure, this.createScanner(filters))
   }
 
-  def readHbase[A](table: String, tableStructure: Map[String, Set[String]], scanner: Scan)
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Map[String, Set[String]], scanner: Scan)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbaseRaw(table, tableStructure, scanner) map {
       case (rowId, row) => Bytes.toString(rowId.get) -> this.extract(row, tableStructure, this.extractCellValue[A])
     }
@@ -157,23 +153,19 @@ final class HbaseSparkContext(@transient sc: SparkContext) extends Serializable 
    * @tparam A 类型参数
    * @return (rowId, Map(family, Map(qualifier, (ts, value)))))
    */
-  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]])
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]])(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseTs(table, tableStructure, new Scan())
   }
 
-  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]], filter: Filter)
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]], filter: Filter)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseTs(table, tableStructure, this.createScanner(filter))
   }
 
-  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]], filters: FilterList)
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]], filters: FilterList)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseTs(table, tableStructure, this.createScanner(filters))
   }
 
-  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]], scanner: Scan)
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Map[String, Set[String]], scanner: Scan)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseRaw(table, tableStructure, scanner) map {
       case (rowId, row) => Bytes.toString(rowId.get) -> this.extract(row, tableStructure, this.extractCellTsValue[A])
     }
@@ -202,23 +194,19 @@ final class HbaseSparkContext(@transient sc: SparkContext) extends Serializable 
    * @tparam A 类型参数
    * @return
    */
-  def readHbase[A](table: String, tableStructure: Set[String])
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Set[String])(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbase(table, tableStructure, new Scan())
   }
 
-  def readHbase[A](table: String, tableStructure: Set[String], filter: Filter)
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Set[String], filter: Filter)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbase(table, tableStructure, this.createScanner(filter))
   }
 
-  def readHbase[A](table: String, tableStructure: Set[String], filterList: FilterList)
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Set[String], filterList: FilterList)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbase(table, tableStructure, this.createScanner(filterList))
   }
 
-  def readHbase[A](table: String, tableStructure: Set[String], scanner: Scan)
-                  (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
+  def readHbase[A](table: String, tableStructure: Set[String], scanner: Scan)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, A]])] = {
     this.readHbaseRaw(table, tableStructure, scanner) map {
       case (rowId, row) =>
         Bytes.toString(rowId.get()) -> this.extractRow(row, tableStructure, this.extractCellValue[A])
@@ -234,23 +222,19 @@ final class HbaseSparkContext(@transient sc: SparkContext) extends Serializable 
    * @tparam A 类型参数
    * @return (rowId, Map(family, Map[qualifier, (ts, value))))
    */
-  def readHbaseTs[A](table: String, tableStructure: Set[String])
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Set[String])(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseTs(table, tableStructure, new Scan())
   }
 
-  def readHbaseTs[A](table: String, tableStructure: Set[String], filter: Filter)
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Set[String], filter: Filter)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseTs(table, tableStructure, this.createScanner(filter))
   }
 
-  def readHbaseTs[A](table: String, tableStructure: Set[String], filterList: FilterList)
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Set[String], filterList: FilterList)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseTs(table, tableStructure, this.createScanner(filterList))
   }
 
-  def readHbaseTs[A](table: String, tableStructure: Set[String], scanner: Scan)
-                    (implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
+  def readHbaseTs[A](table: String, tableStructure: Set[String], scanner: Scan)(implicit config: HbRddConfig, reader: HbRddFormatsReader[A]): RDD[(String, Map[String, Map[String, (Long, A)]])] = {
     this.readHbaseRaw(table, tableStructure, scanner) map {
       case (rowId, row) =>
         Bytes.toString(rowId.get()) -> this.extractRow(row, tableStructure, this.extractCellTsValue[A])

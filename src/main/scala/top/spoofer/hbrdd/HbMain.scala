@@ -224,14 +224,14 @@ object HbMain {
 
   def main(args: Array[String]) {
     System.setProperty("HADOOP_USER_NAME", "spoofer")
-//    this.testHbaseBlukTs()
-//    this.testHbaseBluk()
-//    this.testRdd2Hbase()
-//    this.testSimpleHbaseBluk()
-//    this.testSimpleHbaseBlukTs()
-//    this.testReadHbase()
-//    this.testSingleFamilyRdd2Hbase()
-//    this.testdeleteHbase()
-//    this.testdeleteHbase1()
+    //    this.testHbaseBlukTs()
+    //    this.testHbaseBluk()
+    //    this.testRdd2Hbase()
+    //    this.testSimpleHbaseBluk()
+    //    this.testSimpleHbaseBlukTs()
+    this.testReadHbase()
+    //    this.testSingleFamilyRdd2Hbase()
+    //    this.testdeleteHbase()
+    //    this.testdeleteHbase1()
   }
 }
